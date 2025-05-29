@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Home</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #f9f9f9;
+    }
+
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav {
+      display: flex;
+      gap: 1rem;
+    }
+
+    nav button {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    nav button:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    #logoutBtn {
+      background-color: #dc3545;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    #logoutBtn:hover {
+      background-color: #c82333;
+    }
+
+    main {
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* New styles for product grid */
+    .items-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .item {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .item h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.1rem;
+    }
+
+    .item p {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    .item .price {
+      font-weight: bold;
+      color: #007bff;
+      margin-bottom: 0.5rem;
+    }
+
+    .item img {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 0.5rem;
+      border-radius: 4px;
+    }
+
+    .item button {
+      margin: 0.25rem 0.5rem;
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .buy-btn {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .buy-btn:hover {
+      background-color: #218838;
+    }
+
+    .cart-btn {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .cart-btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+  <video autoplay muted loop id="backgroundVideo"
+    style="position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%; z-index: -1; object-fit: cover;">
+    <source src="a.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+  <header>
+    <div style="color: white; font-weight: bold; font-size: 1.5rem; padding: 0.5rem 1rem; background-color: #007bff;">
+      Joyfulstyling
+    </div>
+    <div id="userNameDisplay"
+      style="color: white; font-weight: bold; padding: 0 1rem 0.5rem 1rem; background-color: #007bff;">
+    </div>
+    <nav style="background-color: #007bff; padding: 0.5rem 1rem; display: flex; gap: 1rem;">
+      <button id="mensWearBtn">Mens Wear</button>
+      <button id="womensWearBtn">Womens Wear</button>
+      <button id="kidsBoysBtn">Kids Wear (Boys)</button>
+      <button id="kidsGirlsBtn">Kids Wear (Girls)</button>
+      <button id="adminBtn">Admin</button>
+      <button id="userBtn">User</button>
+      <button id="slipperBtn">womenslipper</button>
+    </nav>
+    <button id="logoutBtn"
+      style="background-color: #dc3545; color: white; border: none; border-radius: 4px; padding: 0.5rem 1rem; cursor: pointer; margin: 0.5rem 1rem 0 1rem;">Logout</button>
+  </header>
+  <main>
+    <h1>Welcome to Joyful Styling</h1>
+    <p>Select a category from the header above.</p>
+
+    <div id="allProductsSection" style="margin-top: 2rem;">
+      <h2>All Products</h2>
+      <div class="items-container" id="allProductsContainer">
+        <p class="message" id="allProductsLoadingMessage">Loading products...</p>
+      </div>
+    </div>
+
+    <div id="userFolderProductsSection" style="margin-top: 2rem;">
+      <h2>User Folder Products</h2>
+      <div class="items-container" id="userFolderProductsContainer">
+        <!-- Static user folder product images will be displayed here -->
+      </div>
+    </div>
+
+    <div id="slipperSection" style="display:none; margin-top: 2rem;">
+      <h2>Slipper Items</h2>
+      <div class="items-container" id="slipperItemsContainer">
+        <p class="message" id="slipperLoadingMessage">Loading slippers...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Firebase App (the core Firebase SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <!-- Firebase Authentication -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <!-- Firebase Database -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQTHoKOQ2a4kIY4r-tjt1t4TRrFlJwRQ4",
+      authDomain: "website-16b02.firebaseapp.com",
+      databaseURL: "https://website-16b02-default-rtdb.firebaseio.com",
+      projectId: "website-16b02",
+      storageBucket: "website-16b02.firebasestorage.app",
+      messagingSenderId: "67452117174",
+      appId: "1:67452117174:web:d6625c9110f983e54a0617",
+      measurementId: "G-7E5054G6SS"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // Redirect to login if not logged in and display welcome message
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = 'login.html';
+      } else {
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        if (user.displayName) {
+          userNameDisplay.textContent = `Welcome ${user.displayName}`;
+        } else if (user.email) {
+          const namePart = user.email.split('@')[0];
+          userNameDisplay.textContent = `Welcome ${namePart}`;
+        } else {
+          userNameDisplay.textContent = 'Welcome User';
+        }
+      }
+    });
+
+    // Button click handlers
+    document.getElementById('mensWearBtn').addEventListener('click', () => {
+      window.location.href = 'mens_wear.html';
+    });
+    document.getElementById('womensWearBtn').addEventListener('click', () => {
+      window.location.href = 'womens.html';
+    });
+    document.getElementById('kidsBoysBtn').addEventListener('click', () => {
+      window.location.href = 'kids_boys_wear.html';
+    });
+    document.getElementById('kidsGirlsBtn').addEventListener('click', () => {
+      window.location.href = 'kids_girls_wear.html';
+    });
+    document.getElementById('adminBtn').addEventListener('click', () => {
+      window.location.href = '../admin/admin_dashboard.html';
+    });
+    document.getElementById('userBtn').addEventListener('click', () => {
+      window.location.href = 'user_details.html';
+    });
+
+    // Logout button
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      });
+    });
+
+    // Add event listener for slipperBtn to redirect to womenslipper.html
+    document.getElementById('womenslipperBtn').addEventListener('click', () => {
+      window.location.href = 'womenslipper.html';
+    });
+
+    // Slipper button click handler
+    document.getElementById('WomenslipperBtn').addEventListener('click', () => {
+      // Hide other sections if any (optional)
+      // Show slipper section
+      document.getElementById('womenslipperSection').style.display = 'block';
+
+      // Fetch slippers items from Firebase Realtime Database
+      const slipperItemsContainer = document.getElementById('WomenslipperItemsContainer');
+      const slipperLoadingMessage = document.getElementById('WomenslipperLoadingMessage');
+
+      function displaywomenSlipperItems(items) {
+        slipperItemsContainer.innerHTML = '';
+        if (!items) {
+          slipperItemsContainer.innerHTML = '<p class="message">No slippers found.</p>';
+          return;
+        }
+        Object.keys(items).forEach(key => {
+          const item = items[key];
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'item';
+          itemDiv.style = 'background: white; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); width: calc(20% - 1rem); box-sizing: border-box; display: flex; flex-direction: column; align-items: center; text-align: center;';
+          itemDiv.innerHTML = `
+            <h3>${item.name}</h3>
+            <p>${item.description}</p>
+            ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" style="max-width:100%; height:auto; margin-bottom: 0.5rem; border-radius: 4px;" />` : ''}
+            <p class="price">$${item.price.toFixed(2)}</p>
+            <div>
+              <button class="buy-btn" data-key="${key}">Buy</button>
+              <button class="cart-btn" data-key="${key}">Add to Cart</button>
+            </div>
+          `;
+          womenslipperItemsContainer.appendChild(itemDiv);
+        });
+      }
+
+      database.ref('womenslippers').on('value', (snapshot) => {
+        const data = snapshot.val();
+        slipperLoadingMessage.style.display = 'none';
+        displaySlipperItems(data);
+
+        // Add event listeners for buy and cart buttons
+        setTimeout(() => {
+          document.querySelectorAll('.buy-btn').forEach(button => {
+            button.addEventListener('click', () => {
+              const key = button.getAttribute('data-key');
+              const item = data[key];
+              if (item) {
+                // Clear cart and add only this item for buy now
+                localStorage.setItem('shoppingCart', JSON.stringify([{ ...item, quantity: 1 }]));
+                window.location.href = 'cart.html';
+              }
+            });
+          });
+          document.querySelectorAll('.cart-btn').forEach(button => {
+            button.addEventListener('click', () => {
+              const key = button.getAttribute('data-key');
+              const item = data[key];
+              if (item) {
+                let cart = localStorage.getItem('shoppingCart');
+                cart = cart ? JSON.parse(cart) : [];
+                const existingIndex = cart.findIndex(ci => ci.name === item.name);
+                if (existingIndex >= 0) {
+                  cart[existingIndex].quantity += 1;
+                } else {
+                  cart.push({ ...item, quantity: 1 });
+                }
+                localStorage.setItem('shoppingCart', JSON.stringify(cart));
+                alert(`${item.name} added to cart.`);
+              }
+            });
+          });
+        }, 100);
+      }, (error) => {
+        womenslipperLoadingMessage.textContent = 'Error loading womenslippers: ' + error.message;
+      });
+    });
+    // Function to display all products
+    function displayAllProducts(products) {
+      const allProductsContainer = document.getElementById('allProductsContainer');
+      allProductsContainer.innerHTML = '';
+      if (!products || Object.keys(products).length === 0) {
+        allProductsContainer.innerHTML = '<p class="message">No products found.</p>';
+        return;
+      }
+      Object.keys(products).forEach(category => {
+        const categoryProducts = products[category];
+        Object.keys(categoryProducts).forEach(key => {
+          const item = categoryProducts[key];
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'item';
+          itemDiv.style = 'background: white; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); width: calc(20% - 1rem); box-sizing: border-box; display: flex; flex-direction: column; align-items: center; text-align: center;';
+          itemDiv.innerHTML = `
+            <h3>${item.name}</h3>
+            <p>${item.description}</p>
+            ${item.imageUrl || item.image ? `<img src="${item.imageUrl || item.image}" alt="${item.name}" style="max-width:100%; height:auto; margin-bottom: 0.5rem; border-radius: 4px;" />` : ''}
+            <p class="price">$${item.price.toFixed(2)}</p>
+            <div>
+              <button class="buy-btn" data-key="${key}" data-category="${category}">Buy</button>
+              <button class="cart-btn" data-key="${key}" data-category="${category}">Add to Cart</button>
+            </div>
+          `;
+          allProductsContainer.appendChild(itemDiv);
+        });
+      });
+
+      // Add event listeners for buy and cart buttons
+      setTimeout(() => {
+        document.querySelectorAll('.buy-btn').forEach(button => {
+          button.addEventListener('click', () => {
+            const key = button.getAttribute('data-key');
+            const category = button.getAttribute('data-category');
+            database.ref(`${category}/${key}`).once('value').then(snapshot => {
+              const item = snapshot.val();
+              if (item) {
+                // Clear cart and add only this item for buy now
+                localStorage.setItem('shoppingCart', JSON.stringify([{ ...item, quantity: 1 }]));
+                window.location.href = 'cart.html';
+              }
+            });
+          });
+        });
+        document.querySelectorAll('.cart-btn').forEach(button => {
+          button.addEventListener('click', () => {
+            const key = button.getAttribute('data-key');
+            const category = button.getAttribute('data-category');
+            database.ref(`${category}/${key}`).once('value').then(snapshot => {
+              const item = snapshot.val();
+              if (item) {
+                let cart = localStorage.getItem('shoppingCart');
+                cart = cart ? JSON.parse(cart) : [];
+                const existingIndex = cart.findIndex(ci => ci.name === item.name);
+                if (existingIndex >= 0) {
+                  cart[existingIndex].quantity += 1;
+                } else {
+                  cart.push({ ...item, quantity: 1 });
+                }
+                localStorage.setItem('shoppingCart', JSON.stringify(cart));
+                alert(`${item.name} added to cart.`);
+              }
+            });
+          });
+        });
+      }, 100);
+    }
+
+    // Fetch all products from Firebase Realtime Database
+    const categories = ['mens_wear', 'womens_wear', 'kids_boys_wear', 'kids_girls_wear', 'slippers'];
+    const allProducts = {};
+    let loadedCategories = 0;
+
+    categories.forEach(category => {
+      database.ref(category).once('value').then(snapshot => {
+        allProducts[category] = snapshot.val() || {};
+        loadedCategories++;
+        if (loadedCategories === categories.length) {
+          document.getElementById('allProductsLoadingMessage').style.display = 'none';
+          displayAllProducts(allProducts);
+        }
+      }).catch(error => {
+        document.getElementById('allProductsLoadingMessage').textContent = 'Error loading products: ' + error.message;
+      });
+    });
+  </script>
+</body>
+
+</html>
